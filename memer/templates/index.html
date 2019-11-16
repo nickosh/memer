@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="{{ cfg.refresh }}"/>
+    <title>{{ cfg.header }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  </head>
+    <style>
+        body {
+            overflow: hidden;
+            }
+
+        html {
+            overflow: hidden;
+            }
+    </style>
+<body>
+    <section class="hero is-fullheight is-link">
+    <div class="hero-head">
+        <nav class="navbar is-fixed-top">
+                <div class="navbar-brand">
+                    <div class="navbar-item is-link">
+                        <p class="title">{{ cfg.title }}</p>
+                    </div>
+                  <div class="navbar-item">
+                    <span class="icon"></span>
+                </div>
+                </div>
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <span class="icon">
+                            <i class="fas fa-2x fa-hashtag"></i>
+                        </span>
+                    </div>
+                    <div class="navbar-item">
+                    <span class="title">{{ data.id }}</span>
+                    </div>
+                </div>
+              </nav>
+    </div>
+    <div class="hero-body" style="background-image: url(/memes/{{ data.id }}.jpg) ;
+        background-position: center center;
+        background-repeat:  no-repeat;
+        background-attachment: fixed;
+        -webkit-background-size: contain;
+        -moz-background-size: contain;
+        -o-background-size: contain;
+        background-size: contain;
+        background-color: #00447C;">
+    </div>
+    <div class="hero-foot">
+            <nav class="navbar is-fixed-bottom">
+                    <div class="navbar-brand">
+                            <div class="navbar-item">
+                                    <span class="icon">
+                                        <i class="fab fa-lg fa-telegram-plane"></i>
+                                    </span>
+                                    <span>{{ cfg.botname }}</span>
+                                </div>
+                      <div class="navbar-item is-link">
+                      </div>
+                    </div>
+                    <div class="navbar-end">
+                        <div class="navbar-item">
+                            <span class="icon">
+                                <i class="fas fa-2x fa-laugh-squint"></i>
+                            </span>
+                        </div>
+                        <div class="navbar-item">
+                            <span class="title">{{ data.vote_up }}</span>
+                        </div>
+                        <div class="navbar-item">
+                            <span></span>
+                        </div>
+                        <div class="navbar-item">
+                            <span class="icon">
+                                <i class="fas fa-2x fa-tired"></i>
+                            </span>
+                        </div>
+                        <div class="navbar-item">
+                            <span class="title">{{ data.vote_down }}</span>
+                        </div>
+                    </div>
+                  </nav>
+        </div>
+</body>
+</html>

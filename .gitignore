@@ -43,3 +43,4 @@ pip-wheel-metadata
 memer/imgs/
 memer/*.json
 tests/
+static/

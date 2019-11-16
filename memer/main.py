@@ -1,4 +1,3 @@
-#import asyncio
 import logging
 import os
 import random
@@ -6,7 +5,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-#import uvloop
+import asyncio
 import ujson
 from sanic import Sanic
 from sanic.log import logger
@@ -17,9 +16,6 @@ from telebot import apihelper as bothelper
 from telebot import logger as botlogger
 from telebot import types as bottypes
 from tinydb import Query, TinyDB
-
-#from signal import SIGINT, signal
-
 
 #Ger working directory
 workdir = Path(__file__).parent.absolute()
@@ -41,6 +37,8 @@ WEB_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 #Init webserver
 app = Sanic()
 jinja = SanicJinja2(app)
+#Set static
+app.static('/memes', './imgs')
 #Init DBs
 config = TinyDB(Path(workdir, "config.json"))
 db = TinyDB(Path(workdir, "db.json"))
@@ -71,21 +69,33 @@ def set_to_config(pid, value):
 #Take params from config
 api_token = get_from_config('bot_api_key')
 if api_token == False:
-    api_token = set_to_config('bot_api_key', '<YOUR_API_KEY_HERE>') #Set your API TOKEN here
-rotator_title = get_from_config('app_site_title')
-if rotator_title == False:
-    rotator_title = set_to_config('app_site_title', 'Memer - your shinny meme rotator')
-img_cur = get_from_config('img_current')
-if img_cur == False:
-    img_cur = set_to_config('img_current', '0')
+    api_token = set_to_config('bot_api_key', '<telegram API TOKEN here>') #Set your API TOKEN here
+
+web_header = get_from_config('app_site_header')
+if web_header == False:
+    web_header = set_to_config('app_site_header', 'Memer - shiny meme rotator')
+web_title = get_from_config('app_site_title')
+if web_title == False:
+    web_title = set_to_config('app_site_title', 'MEMER')
+web_botname = get_from_config('app_site_botname')
+if web_botname == False:
+    web_botname = set_to_config('app_site_botname', '@memer_bot')
+web_refresh_interval = get_from_config('app_site_refresh')
+if web_refresh_interval == False:
+    web_refresh_interval = set_to_config('app_site_refresh', 15)
+webconfig = {'header': web_header, 'title': web_title, 'botname': web_botname, 'refresh': web_refresh_interval}
+
+img_refresh = get_from_config('img_refresh')
+if img_refresh == False:
+    img_refresh = set_to_config('img_refresh', 30)
 
 #Init bot
 bot = TeleBot(api_token)
 botlogger.setLevel(logging.DEBUG)
 
 #Inner dicts
-memes_shown = []
-memes_removed = []
+memes_shown = list()
+memes_removed = list()
 #Here what bot answer when save user's meme. Choosed randomly.
 save_answers = ['Орно! Схоронил.', 'Кек! Хорошо так.', 'Лул! Годненько.']
 
@@ -187,12 +197,46 @@ def bot_commands(message):
         bot.send_message(message.chat.id, 'Моя нипанимать...')
 
 #Webserv
-@app.route("/")
-async def test(request):
-    return json({"hello": "world"})
+async def app_rotator(app):
+    while True:
+        await asyncio.sleep(img_refresh)
+        memes_db = list()
+        for meme in db.all():
+            memes_db.append(meme['id'])
+        img_current = get_from_config('img_current')
+        memes_shown.append(img_current)
+        memes_ready = list(set(memes_db).difference(set(memes_shown)))
+        if len(memes_ready) == 0:
+            memes_shown.clear()
+            memes_shown.append(img_current)
+            memes_ready = list(set(memes_db).difference(set(memes_shown)))
+            random.seed(datetime.now())
+            img_current = random.choice(memes_ready)
+            set_to_config('img_current', img_current)
+            #print('FROM START! All: {}, Shown: {}, Ready: {}'.format(memes_db, memes_shown, memes_ready))
+        else:
+            random.seed(datetime.now())
+            img_current = random.choice(memes_ready)
+            set_to_config('img_current', img_current)
+            #print('NEXT! All: {}, Shown: {}, Ready: {}'.format(memes_db, memes_shown, memes_ready))
+
+# todo: reported memes deleter
+
+
+@app.route("/", methods=['GET'])
+async def app_slideshow(request):
+    img_current = get_from_config('img_current')
+    if Path.exists(Path(imgdir, '{}.jpg'.format(img_current))):
+        imgdata = db.get(Query().id == img_current)
+        if imgdata:
+            return jinja.render("index.html", request, cfg=webconfig, data=imgdata)
+        else:
+            return json({'status': 'DB item not found', 'data': imgdata}, 500)
+    else:
+        return json({'status': 'Img not found', 'img': img_current}, 500)
 
 @app.route("/wh", methods=['POST'])
-async def webhook(request):
+async def app_webhook(request):
     if request.body is None:
         return json({'status': 'broken request'}, 403)
     body = request.body.decode("utf-8")
@@ -205,47 +249,17 @@ async def webhook(request):
 @app.listener('before_server_start')
 async def before_start(app, loop):
     bot.remove_webhook()
+    img_current = get_from_config('img_current')
+    if img_current == False:
+        img_current = set_to_config('img_current', 1)
 
 @app.listener('after_server_start')
 async def after_start(app, loop):
     bot.set_webhook(url="https://{}/wh".format(WEB_HOST))
+    app.add_task(app_rotator)
 
 # todo: before server stop save all removed memes ids in config (for history)
 
 if __name__ == "__main__":
     #ssl = {'cert': WEB_SSL_CERT, 'key': WEB_SSL_PRIV} #if needed add ssl=ssl to app.run params
     app.run(host=WEB_LISTEN, port=WEB_PORT, debug=True, access_log=True)
-
-# Quick'n'dirty SSL certificate generation:
-#
-# openssl genrsa -out webhook_pkey.pem 2048
-# openssl req -new -x509 -days 3650 -key webhook_pkey.pem -out webhook_cert.pem
-#
-# When asked for "Common Name (e.g. server FQDN or YOUR name)" you should reply
-# with the same value in you put in WEBHOOK_HOST
-
-'''if __name__ == "__main__":
-    ssl = {'cert': WEB_SSL_CERT, 'key': WEB_SSL_PRIV}
-
-    asyncio.set_event_loop(uvloop.new_event_loop())
-    serv_coro = app.create_server(host=WEB_LISTEN, port=WEB_PORT, debug=True, access_log=True, return_asyncio_server=True)
-    loop = asyncio.get_event_loop()
-    serv_task = asyncio.ensure_future(serv_coro, loop=loop)
-    signal(SIGINT, lambda s, f: loop.stop())
-    server = loop.run_until_complete(serv_task)
-    server.after_start()
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt as e:
-        loop.stop()
-    finally:
-        server.before_stop()
-
-        # Wait for server to close
-        close_task = server.close()
-        loop.run_until_complete(close_task)
-
-        # Complete all tasks on the loop
-        for connection in server.connections:
-            connection.close_if_idle()
-        server.after_stop()'''
