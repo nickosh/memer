@@ -88,6 +88,9 @@ webconfig = {'header': web_header, 'title': web_title, 'botname': web_botname, '
 img_refresh = get_from_config('img_refresh')
 if img_refresh == False:
     img_refresh = set_to_config('img_refresh', 30)
+img_removed = get_from_config('img_removed')
+if img_removed == False:
+    img_removed = set_to_config('img_removed', [])
 
 #Init bot
 bot = TeleBot(api_token)
@@ -213,15 +216,24 @@ async def app_rotator(app):
             random.seed(datetime.now())
             img_current = random.choice(memes_ready)
             set_to_config('img_current', img_current)
-            #print('FROM START! All: {}, Shown: {}, Ready: {}'.format(memes_db, memes_shown, memes_ready))
+            #print('FROM START! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
         else:
             random.seed(datetime.now())
             img_current = random.choice(memes_ready)
             set_to_config('img_current', img_current)
-            #print('NEXT! All: {}, Shown: {}, Ready: {}'.format(memes_db, memes_shown, memes_ready))
+            #print('NEXT! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
 
-# todo: reported memes deleter
-
+async def app_deleter(app):
+    while True:
+        await asyncio.sleep(3600)
+        for meme in db.all():
+            if meme['report'] > 2:
+                if Path.exists(Path(imgdir, '{}.jpg'.format(meme['id']))):
+                    os.remove(Path(imgdir, '{}.jpg'.format(meme['id'])))
+                memes_shown.remove(meme['id'])
+                memes_removed.append(meme['id'])
+                print('Meme {} deleted'.format(meme['id']))
+                db.remove(Query().id == meme['id'])
 
 @app.route("/", methods=['GET'])
 async def app_slideshow(request):
@@ -257,8 +269,13 @@ async def before_start(app, loop):
 async def after_start(app, loop):
     bot.set_webhook(url="https://{}/wh".format(WEB_HOST))
     app.add_task(app_rotator)
+    app.add_task(app_deleter)
 
-# todo: before server stop save all removed memes ids in config (for history)
+@app.listener('before_server_stop')
+async def before_stop(app, loop):
+    img_removed = get_from_config('img_removed')
+    img_removed += memes_removed
+    set_to_config('img_removed', img_removed)
 
 if __name__ == "__main__":
     #ssl = {'cert': WEB_SSL_CERT, 'key': WEB_SSL_PRIV} #if needed add ssl=ssl to app.run params
