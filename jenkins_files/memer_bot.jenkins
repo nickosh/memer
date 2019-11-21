@@ -1,0 +1,24 @@
+#!groovy
+properties([disableConcurrentBuilds()])
+pipeline{
+    agent any
+    triggers{ pollSCM('30 * * * *')}
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timestamps()
+    }
+    stages{
+        stage("Create docker image"){
+            steps{
+                echo "===================== Creating docker image... ============================"
+                sh 'docker build -t memerbot:latest .'
+            }
+        }
+        stage("Run docker image"){
+            steps{
+                echo "===================== Starting docker image... ============================"
+                sh 'docker run memerbot:latest'
+            }
+        }
+    }
+}
