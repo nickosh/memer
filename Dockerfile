@@ -7,7 +7,7 @@ COPY requirements.txt /requirements.txt
 
 RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev alpine-sdk
 
-RUN pip install --install-option="--prefix=/install" -r /requirements.txt
+RUN pip3 install --install-option="--prefix=/install" -r /requirements.txt
 
 # Can clean up a lot of space by deleting rogue .c files etc:
 RUN find /install/lib/python3.7 -name '*.c' -delete
@@ -22,4 +22,4 @@ COPY --from=builder /install /usr/local
 COPY memer/ /memer
 
 EXPOSE 8443
-CMD ["python", "/memer/main.py"]
+CMD ["python3", "/memer/main.py"]
