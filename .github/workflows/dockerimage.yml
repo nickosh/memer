@@ -17,8 +17,9 @@ jobs:
       run: docker build . --file Dockerfile -t ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA}
     - name: Docker login
       run: docker login docker.pkg.github.com -u publisher -p "${GITHUB_TOKEN}"
-    - name: Push
-      run:
-        docker tag ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA} ${DOCKER_IMAGE_ORIGIN}:latest
-        docker push ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA}
-        docker push ${DOCKER_IMAGE_ORIGIN}:latest
+    - name: Tag latest image
+      run: docker tag ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA} ${DOCKER_IMAGE_ORIGIN}:latest
+    - name: Push current
+      run: docker push ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA}
+    - name: Push latest
+      run: docker push ${DOCKER_IMAGE_ORIGIN}:latest
