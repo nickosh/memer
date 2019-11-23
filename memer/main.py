@@ -28,9 +28,9 @@ else:
     imgdir = Path(workdir, "imgs")
 
 #Set webserver params
-WEB_HOST = '<external ip or domain>'
-WEB_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
-WEB_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
+#WEB_HOST = '<external ip or domain>'
+#WEB_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
+#WEB_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 
 #Uncomment if custom certs needed
 #WEB_SSL_CERT = Path(workdir, "webhook_cert.pem") # Path to the ssl certificate
@@ -42,8 +42,10 @@ jinja = SanicJinja2(app)
 #Set static
 app.static('/memes', './imgs')
 #Init DBs
-config = TinyDB(Path(workdir, "config.json"))
-db = TinyDB(Path(workdir, "db.json"))
+if Path.exists(Path(workdir, "data")) == False:
+    os.mkdir(Path(workdir, "data"))
+config = TinyDB(Path(workdir, "data", "config.json"))
+db = TinyDB(Path(workdir, "data", "db.json"))
 
 #Work with config
 def get_from_config(pid):
@@ -72,6 +74,16 @@ def set_to_config(pid, value):
 api_token = get_from_config('bot_api_key')
 if api_token == False:
     api_token = set_to_config('bot_api_key', '<telegram API TOKEN here>') #Set your API TOKEN here
+
+config_host = get_from_config('web_host')
+if config_host == False:
+    config_host = set_to_config('web_host', '<external ip or domain>')
+config_port = get_from_config('web_port')
+if config_port == False:
+    config_port = set_to_config('web_port', '8443')
+config_listen = get_from_config('web_listen')
+if config_listen == False:
+    config_listen = set_to_config('web_listen', '0.0.0.0')
 
 web_header = get_from_config('app_site_header')
 if web_header == False:
@@ -269,7 +281,7 @@ async def before_start(app, loop):
 
 @app.listener('after_server_start')
 async def after_start(app, loop):
-    bot.set_webhook(url="https://{}/wh".format(WEB_HOST))
+    bot.set_webhook(url="https://{}/wh".format(config_host))
     app.add_task(app_rotator)
     app.add_task(app_deleter)
 
@@ -281,4 +293,4 @@ async def before_stop(app, loop):
 
 if __name__ == "__main__":
     #ssl = {'cert': WEB_SSL_CERT, 'key': WEB_SSL_PRIV} #if needed add ssl=ssl to app.run params
-    app.run(host=WEB_LISTEN, port=WEB_PORT, debug=True, access_log=True)
+    app.run(host=config_listen, port=config_port, debug=True, access_log=True)
