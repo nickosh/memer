@@ -108,7 +108,7 @@ if img_removed == False:
 
 #Init bot
 bot = TeleBot(api_token)
-botlogger.setLevel(logging.DEBUG)
+botlogger.setLevel(logging.WARNING)
 
 #Inner dicts
 memes_shown = list()
@@ -293,4 +293,4 @@ async def before_stop(app, loop):
 
 if __name__ == "__main__":
     #ssl = {'cert': WEB_SSL_CERT, 'key': WEB_SSL_PRIV} #if needed add ssl=ssl to app.run params
-    app.run(host=config_listen, port=config_port, debug=True, access_log=True)
+    app.run(host=config_listen, port=config_port)
