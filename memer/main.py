@@ -80,7 +80,7 @@ if config_host == False:
     config_host = set_to_config('web_host', '<external ip or domain>')
 config_port = get_from_config('web_port')
 if config_port == False:
-    config_port = set_to_config('web_port', '8443')
+    config_port = set_to_config('web_port', '80')
 config_listen = get_from_config('web_listen')
 if config_listen == False:
     config_listen = set_to_config('web_listen', '0.0.0.0')
