@@ -21,5 +21,4 @@ FROM python:3.7-alpine
 COPY --from=builder /install /usr/local
 COPY memer/ /memer
 
-EXPOSE 8443
 CMD ["python3", "/memer/main.py"]

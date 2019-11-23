@@ -40,7 +40,7 @@ else:
 app = Sanic()
 jinja = SanicJinja2(app)
 #Set static
-app.static('/memes', imgdir)
+app.static('/memes', '/memer/imgs/')
 #Init DBs
 if Path.exists(Path(workdir, "data")) == False:
     os.mkdir(Path(workdir, "data"))
