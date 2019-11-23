@@ -128,15 +128,15 @@ def bot_upload_photo(message):
     fileID = message.photo[-1].file_id
     file_info = bot.get_file(fileID)
     downloaded_file = bot.download_file(file_info.file_path)
-    db_last_row = db.get(doc_id=len(db))
+    db_last_id = db.all()[-1]['id']
 
-    with open(Path(imgdir, '{}.jpg'.format(int(db_last_row['id'])+1)), 'wb') as new_file:
+    with open(Path(imgdir, '{}.jpg'.format(int(db_last_id)+1)), 'wb') as new_file:
         new_file.write(downloaded_file)
         new_file.flush()
     random.seed(datetime.now())
     bot.send_message(message.chat.id, random.choice(save_answers))
 
-    db.insert({'id': int(db_last_row['id'])+1, 'vote_up': 0, 'vote_down': 0, 'report': 0, 'users_voted': [], 'users_reported': [], 'date': datetime.now()})
+    db.insert({'id': int(db_last_id)+1, 'vote_up': 0, 'vote_down': 0, 'report': 0, 'users_voted': [], 'users_reported': [], 'date': datetime.now()})
 
 @bot.message_handler(content_types=['text'])
 def bot_commands(message):
