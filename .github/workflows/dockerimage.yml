@@ -8,13 +8,13 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+        DOCKER_IMAGE_ORIGIN: "docker.pkg.github.com/nickosh/memer/memer"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v1
     - name: Build
       run: docker build . --file Dockerfile -t ${DOCKER_IMAGE_ORIGIN}:${GITHUB_SHA}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        DOCKER_IMAGE_ORIGIN: "docker.pkg.github.com/nickosh/memer/memer"
     - name: Docker login
       run: docker login docker.pkg.github.com -u publisher -p "${GITHUB_TOKEN}"
     - name: Push
