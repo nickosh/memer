@@ -59,9 +59,9 @@
         container_name: "memer"
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.whoami.rule=Host(`mydomain.com`)"
-          - "traefik.http.routers.whoami.entrypoints=websecure"
-          - "traefik.http.routers.whoami.tls.certresolver=mytlschallenge"
+          - "traefik.http.routers.memer.rule=Host(`mydomain.com`)"
+          - "traefik.http.routers.memer.entrypoints=websecure"
+          - "traefik.http.routers.memer.tls.certresolver=mytlschallenge"
         ports:
           - "80:80"
         volumes:
