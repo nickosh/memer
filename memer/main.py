@@ -128,7 +128,10 @@ def bot_upload_photo(message):
     fileID = message.photo[-1].file_id
     file_info = bot.get_file(fileID)
     downloaded_file = bot.download_file(file_info.file_path)
-    db_last_id = db.all()[-1]['id']
+    if len(db.all()) > 0:
+        db_last_id = db.all()[-1]['id']
+    else:
+        db_last_id = 0
 
     with open(Path(imgdir, '{}.jpg'.format(int(db_last_id)+1)), 'wb') as new_file:
         new_file.write(downloaded_file)
