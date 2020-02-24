@@ -131,23 +131,25 @@ def bot_send_welcome(message):
 @bot.message_handler(content_types=['photo'])
 def bot_upload_photo(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    fileID = message.photo[-1].file_id
-    file_info = bot.get_file(fileID)
-    downloaded_file = bot.download_file(file_info.file_path)
     if len(db.all()) > 0:
         db_last_id = db.all()[-1]['id']
     else:
         db_last_id = 0
 
+    db.insert({'id': int(db_last_id)+1, 'vote_up': 0, 'vote_down': 0, 'report': 0, 'users_voted': [], 'users_reported': [], 'date': datetime.now()})
+    logging.debug("DB insert: ID {}, date: {}".format(int(db_last_id)+1, datetime.now))
+
+    fileID = message.photo[-1].file_id
+    file_info = bot.get_file(fileID)
+    downloaded_file = bot.download_file(file_info.file_path)
+
     with open(Path(imgdir, '{}.jpg'.format(int(db_last_id)+1)), 'wb') as new_file:
         new_file.write(downloaded_file)
         new_file.flush()
+
     memes_new.append(int(db_last_id)+1)
     random.seed(datetime.now())
     bot.send_message(message.chat.id, random.choice(save_answers))
-
-    db.insert({'id': int(db_last_id)+1, 'vote_up': 0, 'vote_down': 0, 'report': 0, 'users_voted': [], 'users_reported': [], 'date': datetime.now()})
-    logging.debug("DB insert: ID {}, date: {}".format(int(db_last_id)+1, datetime.now))
 
 @bot.message_handler(content_types=['text'])
 def bot_commands(message):
