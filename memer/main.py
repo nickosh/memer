@@ -226,6 +226,7 @@ async def app_rotator(app):
         if len(memes_new) > 0:
             random.seed(datetime.now())
             img_current = random.choice(memes_new)
+            set_to_config('img_current', img_current)
             memes_new.remove(img_current)
         else:
             memes_db = list()
@@ -263,9 +264,16 @@ async def app_deleter(app):
 @app.route("/", methods=['GET'])
 async def app_slideshow(request):
     img_current = get_from_config('img_current')
-    if request.args:
-        args_with_blank_values = request.get_args(keep_blank_values=True)
-        return json({'status': 'ARGS', 'data': args_with_blank_values}, 500)
+    if request.query_string:
+        try:
+            query_meme = int(request.query_string)
+        except Exception as e:
+            return json({'status': 'input error', 'data': e}, 500)
+        imgdata = db.get(Query().id == query_meme)
+        if imgdata:
+            return jinja.render("index.html", request, cfg=webconfig, data=imgdata)
+        else:
+            return json({'status': 'DB item not found', 'data': imgdata}, 500)
     elif Path.exists(Path(imgdir, '{}.jpg'.format(img_current))):
         imgdata = db.get(Query().id == img_current)
         if imgdata:
