@@ -113,6 +113,7 @@ botlogger.setLevel(logging.WARNING)
 #Inner dicts
 memes_shown = list()
 memes_removed = list()
+memes_new = list()
 #Here what bot answer when save user's meme. Choosed randomly.
 save_answers = ['Орно! Схоронил.', 'Кек! Хорошо так.', 'Лул! Годненько.']
 
@@ -136,6 +137,7 @@ def bot_upload_photo(message):
     with open(Path(imgdir, '{}.jpg'.format(int(db_last_id)+1)), 'wb') as new_file:
         new_file.write(downloaded_file)
         new_file.flush()
+    memes_new.append(int(db_last_id)+1)
     random.seed(datetime.now())
     bot.send_message(message.chat.id, random.choice(save_answers))
 
@@ -221,25 +223,30 @@ def bot_commands(message):
 async def app_rotator(app):
     while True:
         await asyncio.sleep(img_refresh)
-        memes_db = list()
-        for meme in db.all():
-            memes_db.append(meme['id'])
-        img_current = get_from_config('img_current')
-        memes_shown.append(img_current)
-        memes_ready = list(set(memes_db).difference(set(memes_shown)))
-        if len(memes_ready) == 0:
-            memes_shown.clear()
+        if len(memes_new) > 0:
+            random.seed(datetime.now())
+            img_current = random.choice(memes_new)
+            memes_new.remove(img_current)
+        else:
+            memes_db = list()
+            for meme in db.all():
+                memes_db.append(meme['id'])
+            img_current = get_from_config('img_current')
             memes_shown.append(img_current)
             memes_ready = list(set(memes_db).difference(set(memes_shown)))
-            random.seed(datetime.now())
-            img_current = random.choice(memes_ready)
-            set_to_config('img_current', img_current)
-            #print('FROM START! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
-        else:
-            random.seed(datetime.now())
-            img_current = random.choice(memes_ready)
-            set_to_config('img_current', img_current)
-            #print('NEXT! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
+            if len(memes_ready) == 0:
+                memes_shown.clear()
+                memes_shown.append(img_current)
+                memes_ready = list(set(memes_db).difference(set(memes_shown)))
+                random.seed(datetime.now())
+                img_current = random.choice(memes_ready)
+                set_to_config('img_current', img_current)
+                #print('FROM START! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
+            else:
+                random.seed(datetime.now())
+                img_current = random.choice(memes_ready)
+                set_to_config('img_current', img_current)
+                #print('NEXT! All: {}, Shown: {}, Ready: {}, Current: {}'.format(memes_db, memes_shown, memes_ready, img_current))
 
 async def app_deleter(app):
     while True:
@@ -256,7 +263,10 @@ async def app_deleter(app):
 @app.route("/", methods=['GET'])
 async def app_slideshow(request):
     img_current = get_from_config('img_current')
-    if Path.exists(Path(imgdir, '{}.jpg'.format(img_current))):
+    if request.args:
+        args_with_blank_values = request.get_args(keep_blank_values=True)
+        return json({'status': 'ARGS', 'data': args_with_blank_values}, 500)
+    elif Path.exists(Path(imgdir, '{}.jpg'.format(img_current))):
         imgdata = db.get(Query().id == img_current)
         if imgdata:
             return jinja.render("index.html", request, cfg=webconfig, data=imgdata)
