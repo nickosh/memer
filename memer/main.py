@@ -112,8 +112,7 @@ log = logging.getLogger('memer')
 
 #Init bot
 bot = TeleBot(api_token)
-botlogger.setLevel(logging.DEBUG)
-botlogger.basicConfig(filename=Path(workdir, "data", "telebot.log"), level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
+botlogger.setLevel(logging.WARNING)
 
 #Inner dicts
 memes_shown = list()
