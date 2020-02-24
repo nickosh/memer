@@ -106,9 +106,9 @@ img_removed = get_from_config('img_removed')
 if img_removed == False:
     img_removed = set_to_config('img_removed', list())
 
-#Init Memer logging
+#Init logging
+logging.basicConfig(filename=Path(workdir, "data", "memer.log"), level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger('memer')
-log.basicConfig(filename=Path(workdir, "data", "memer.log"), level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
 
 #Init bot
 bot = TeleBot(api_token)
