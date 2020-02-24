@@ -107,8 +107,8 @@ if img_removed == False:
     img_removed = set_to_config('img_removed', list())
 
 #Init Memer logging
-logging.setLevel(logging.DEBUG)
-logging.basicConfig(filename=Path(workdir, "data", "memer.log"), level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
+log = logging.getLogger('memer')
+log.basicConfig(filename=Path(workdir, "data", "memer.log"), level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
 
 #Init bot
 bot = TeleBot(api_token)
@@ -137,7 +137,7 @@ def bot_upload_photo(message):
         db_last_id = 0
 
     db.insert({'id': int(db_last_id)+1, 'vote_up': 0, 'vote_down': 0, 'report': 0, 'users_voted': [], 'users_reported': [], 'date': datetime.now()})
-    logging.debug("DB insert: ID {}, date: {}".format(int(db_last_id)+1, datetime.now))
+    log.debug("DB insert: ID {}, date: {}".format(int(db_last_id)+1, datetime.now))
 
     fileID = message.photo[-1].file_id
     file_info = bot.get_file(fileID)
@@ -264,10 +264,10 @@ async def app_deleter(app):
             if meme['report'] > 2:
                 if Path.exists(Path(imgdir, '{}.jpg'.format(meme['id']))):
                     os.remove(Path(imgdir, '{}.jpg'.format(meme['id'])))
-                    logging.debug('Meme File {} deleted'.format(meme['id']))
+                    log.debug('Meme File {} deleted'.format(meme['id']))
                 memes_shown.remove(meme['id'])
                 memes_removed.append(meme['id'])
-                logging.debug('Meme {} deleted from DB'.format(meme['id']))
+                log.debug('Meme {} deleted from DB'.format(meme['id']))
                 db.remove(Query().id == meme['id'])
 
 @app.route("/", methods=['GET'])
@@ -298,7 +298,7 @@ async def app_webhook(request):
         return json({'status': 'broken request'}, 403)
     body = request.body.decode("utf-8")
     body = ujson.loads(body)
-    logging.debug('WH body incoming: {}'.format(body))
+    log.debug('WH body incoming: {}'.format(body))
     update = bottypes.Update.de_json(body)
     bot.process_new_updates([update])
     return json({'status': 'ok'}, 200)
@@ -319,7 +319,7 @@ async def after_start(app, loop):
 
 @app.listener('before_server_stop')
 async def before_stop(app, loop):
-    logging.debug('Memer removed during session: {}'.format(memes_removed))
+    log.debug('Memer removed during session: {}'.format(memes_removed))
     img_removed = get_from_config('img_removed')
     img_removed += memes_removed
     set_to_config('img_removed', img_removed)
