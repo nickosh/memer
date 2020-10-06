@@ -7,7 +7,7 @@ COPY requirements.txt /requirements.txt
 
 RUN apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev alpine-sdk
 
-RUN pip3 install --install-option="--prefix=/install" -r /requirements.txt
+RUN pip3 install --prefix=/install -r /requirements.txt
 
 # Can clean up a lot of space by deleting rogue .c files etc:
 RUN find /install/lib/python3.7 -name '*.c' -delete
