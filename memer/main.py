@@ -132,6 +132,7 @@ logging.basicConfig(
 log = logging.getLogger("memer")
 
 # Init language
+log.info("Current app language: {}".format(config_lang))
 lang = Language(config_lang)
 
 # Init bot
