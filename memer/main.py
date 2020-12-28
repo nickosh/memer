@@ -19,7 +19,7 @@ from telebot import logger as botlogger
 from telebot import types as bottypes
 from tinydb import Query, TinyDB
 
-from .lang import Language
+from lang import Language
 
 # Get working directory
 workdir = Path(__file__).parent.absolute()
