@@ -11,13 +11,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v1
-      - name: Clean latest
-        run: docker rmi --force ${DOCKER_IMAGE_ORIGIN}:latest
       - name: Build
-        run: docker build . --file Dockerfile --no-cache -t ${DOCKER_IMAGE_ORIGIN}:$(echo ${GITHUB_SHA} | cut -c1-8) -t ${DOCKER_IMAGE_ORIGIN}:latest
+        run: docker build . --file Dockerfile --no-cache -t ${DOCKER_IMAGE_ORIGIN}:$(echo ${GITHUB_SHA} | cut -c1-8)
       - name: Docker login
         run: docker login docker.pkg.github.com -u publisher -p "${GITHUB_TOKEN}"
-      - name: Push current
+      - name: Push
         run: docker push ${DOCKER_IMAGE_ORIGIN}:$(echo ${GITHUB_SHA} | cut -c1-8)
-      - name: Push latest
-        run: docker push ${DOCKER_IMAGE_ORIGIN}:latest

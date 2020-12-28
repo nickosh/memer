@@ -136,7 +136,7 @@ lang = Language(config_lang)
 
 # Init bot
 bot = TeleBot(api_token)
-botlogger.setLevel(logging.DEBUG)
+botlogger.setLevel(logging.WARNING)
 
 # Inner dicts
 memes_shown = list()
