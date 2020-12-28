@@ -19,6 +19,8 @@ from telebot import logger as botlogger
 from telebot import types as bottypes
 from tinydb import Query, TinyDB
 
+from .lang import Language
+
 # Get working directory
 workdir = Path(__file__).parent.absolute()
 if Path.exists(Path(workdir, "imgs")):
@@ -89,6 +91,12 @@ config_listen = get_from_config("web_listen")
 if config_listen is False:
     config_listen = set_to_config("web_listen", "0.0.0.0")
 
+config_lang = get_from_config("app_language")
+if config_lang is False:
+    config_lang = set_to_config(
+        "app_language", "en"
+    )  # "en" for english, "ru" for russian
+
 web_header = get_from_config("app_site_header")
 if web_header is False:
     web_header = set_to_config("app_site_header", "Memer - shiny meme rotator")
@@ -123,6 +131,9 @@ logging.basicConfig(
 )
 log = logging.getLogger("memer")
 
+# Init language
+lang = Language(config_lang)
+
 # Init bot
 bot = TeleBot(api_token)
 botlogger.setLevel(logging.WARNING)
@@ -131,17 +142,11 @@ botlogger.setLevel(logging.WARNING)
 memes_shown = list()
 memes_removed = list()
 memes_new = list()
-# Here what bot answer when save user's meme. Choosed randomly.
-save_answers = ["Орно! Схоронил.", "Кек! Хорошо так.", "Лул! Годненько."]
 
 # Bot
 @bot.message_handler(commands=["start", "help"])
 def bot_send_welcome(message):
-    # Welcome message for user and descriptions for commands /show /up /down /report
-    bot.send_message(
-        message.chat.id,
-        """Кукусь! Мы тут делимся мемами, а потом дружно над ними орём. Айда с нами!\n\n Просто кидай свою картинку прямо в этот чат и очень скоро увидешь её в общей ленте.\n\n Если хочешь больше, есть пара полезных комманд:\n /start или /help - увидешь данное сообщение;\n /show <id> или /покаж <id> - увидешь понравившийся мемасик ещё раз;\n /up <id> или /ор <id> - оценить мемасик как годный;\n /down <id> или /фу <id> - оценить мемасик как отстойный;\n /report <id> или /удоли <id> - проголосовать за удаление мемасика, три голоса и он отправится в корзину;\n\n ЗЫ: Все команды кроме /start и /help можно вводить без слэша (/). Только ID картинки после пробела не забудь. \n\n Наслаждайся!""",
-    )
+    bot.send_message(message.chat.id, lang.welcome_message)
 
 
 @bot.message_handler(content_types=["photo"])
@@ -175,7 +180,7 @@ def bot_upload_photo(message):
 
     memes_new.append(int(db_last_id) + 1)
     random.seed(datetime.now())
-    bot.send_message(message.chat.id, random.choice(save_answers))
+    bot.send_message(message.chat.id, random.choice(lang.img_save_answers))
 
 
 @bot.message_handler(content_types=["text"])
@@ -191,17 +196,13 @@ def bot_commands(message):
             photo = open(Path(imgdir, "{}.jpg".format(img_id)), "rb")
             bot.send_photo(message.chat.id, photo)
         else:
-            # Send 'Can't find ID' message to user
-            bot.send_message(
-                message.chat.id, "Упс, не могу найти ID {}. :(".format(img_id)
-            )
+            bot.send_message(message.chat.id, lang.error_no_id.format(img_id))
     elif match_voteup:
         img_id = int(match_voteup.group(1))
         dbitem = db.get(Query().id == img_id)
         if dbitem:
             if message.chat.id in dbitem["users_voted"]:
-                # Send 'Already voted' message to user
-                bot.send_message(message.chat.id, "Голос уже учтён! ;)")
+                bot.send_message(message.chat.id, lang.error_voted)
             else:
                 try:
                     users_voted = dbitem["users_voted"]
@@ -213,25 +214,20 @@ def bot_commands(message):
                         },
                         Query().id == img_id,
                     )
-                    # Send 'Thumb up accepted' message to user
                     bot.send_message(
                         message.chat.id,
-                        "Мемасик с ID {} успешно пооран!".format(img_id),
+                        lang.vote_up_accepted.format(img_id),
                     )
                 except Exception as e:
                     raise e
         else:
-            # Send 'Can't find ID' message to user
-            bot.send_message(
-                message.chat.id, "Упс, не могу найти ID {}. :(".format(img_id)
-            )
+            bot.send_message(message.chat.id, lang.error_no_id.format(img_id))
     elif match_votedown:
         img_id = int(match_votedown.group(1))
         dbitem = db.get(Query().id == img_id)
         if dbitem:
             if message.chat.id in dbitem["users_voted"]:
-                # Send 'Already voted' message to user
-                bot.send_message(message.chat.id, "Голос уже учтён! ;)")
+                bot.send_message(message.chat.id, lang.error_voted)
             else:
                 try:
                     users_voted = dbitem["users_voted"]
@@ -243,25 +239,20 @@ def bot_commands(message):
                         },
                         Query().id == img_id,
                     )
-                    # Send 'Thumb down accepted' message to user
                     bot.send_message(
                         message.chat.id,
-                        "Мемасик с ID {} успешно зафукан!".format(img_id),
+                        lang.vote_down_accepted.format(img_id),
                     )
                 except Exception as e:
                     raise e
         else:
-            # Send 'Can't find ID' message to user
-            bot.send_message(
-                message.chat.id, "Упс, не могу найти ID {}. :(".format(img_id)
-            )
+            bot.send_message(message.chat.id, lang.error_no_id.format(img_id))
     elif match_report:
         img_id = int(match_report.group(1))
         dbitem = db.get(Query().id == img_id)
         if dbitem:
             if message.chat.id in dbitem["users_reported"]:
-                # Send 'Already reported' message to user
-                bot.send_message(message.chat.id, "Уже донесено! :/")
+                bot.send_message(message.chat.id, lang.error_reported)
             else:
                 try:
                     users_reported = dbitem["users_reported"]
@@ -273,21 +264,16 @@ def bot_commands(message):
                         },
                         Query().id == img_id,
                     )
-                    # Send 'Meme reported' message to user
                     bot.send_message(
                         message.chat.id,
-                        "Мемасик с ID {} отРосКомНадзорен!".format(img_id),
+                        lang.img_reported.format(img_id),
                     )
                 except Exception as e:
                     raise e
         else:
-            # Send 'Can't find ID' message to user
-            bot.send_message(
-                message.chat.id, "Упс, не могу найти ID {}. :(".format(img_id)
-            )
+            bot.send_message(message.chat.id, lang.error_no_id.format(img_id))
     else:
-        # Send 'Unknown command' message to user
-        bot.send_message(message.chat.id, "Моя нипанимать...")
+        bot.send_message(message.chat.id, lang.error_unknown_command)
 
 
 # Webserv
