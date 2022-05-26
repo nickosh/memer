@@ -26,7 +26,7 @@ sanic==19.9.0
 sanic-jinja2==0.7.4
 six==1.13.0
 tinydb==3.15.1
-ujson==1.35
+ujson==5.2.0
 urllib3==1.25.7
 uvloop==0.14.0
 websockets==8.1
