@@ -1,5 +1,9 @@
 # Memer
-*Unstable hightly experimental version, in development. At your own risk.*
+
+Telegram bot which you can send meme pictures to. All collected memes are gathered into the database and broadcast as a slideshow on a web page, thanks to the built-in web server.
+
+Thus, you can easily and cheerfully exchange pictures in a single feed. Initially, I created this project for my office, where colleagues can anonymously drop their memes (or any other pictures) to the bot, and then everyone can watch a slideshow of memes on the office TV. Bot support voting for content - thumbs up/down and for deleting meme (need 3 votes from different people).
+
 ### Features
 
 - Gather your shiny memes in one place;
