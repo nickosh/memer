@@ -59,7 +59,7 @@ Thus, you can easily and cheerfully exchange pictures in a single feed. Initiall
           - "/var/run/docker.sock:/var/run/docker.sock:ro"
     
       memer:
-        image: "docker.pkg.github.com/nickosh/memer/memer:latest"
+        image: "ghcr.io/nickosh/memer/memer:latest"
         container_name: "memer"
         labels:
           - "traefik.enable=true"
