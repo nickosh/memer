@@ -7,7 +7,7 @@ Thus, you can easily and cheerfully exchange pictures in a single feed. Initiall
 ### Features
 
 - Gather your shiny memes in one place;
-- Browser-based meme slideshow for any big screen (tv-compability);
+- Browser-based meme slideshow for any big screen (tv-compatibility);
 - Telegram bot inside: as easy as drop any meme right in chat, also vote and report features;
 
 ### Deploy
