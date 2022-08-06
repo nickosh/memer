@@ -6,7 +6,7 @@ authors = ["Nickosh"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-sanic = "^19.9"
+sanic = "^20.12"
 sanic-jinja2 = "^0.7.5"
 pyTelegramBotAPI = "^3.6"
 tinydb = "^3.15"
